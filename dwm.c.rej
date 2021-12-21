@@ -1,47 +1,39 @@
 --- dwm.c
 +++ dwm.c
-@@ -177,12 +183,14 @@ static void focus(Client *c);
- static void focusin(XEvent *e);
- static void focusmon(const Arg *arg);
- static void focusstack(const Arg *arg);
-+static pid_t getparentprocess(pid_t p);
- static int getrootptr(int *x, int *y);
- static long getstate(Window w);
- static int gettextprop(Window w, Atom atom, char *text, unsigned int size);
- static void grabbuttons(Client *c, int focused);
- static void grabkeys(void);
- static void incnmaster(const Arg *arg);
-+static int isdescprocess(pid_t p, pid_t c);
- static void keypress(XEvent *e);
- static void killclient(const Arg *arg);
- static void manage(Window w, XWindowAttributes *wa);
-@@ -1817,6 +1878,20 @@ unmanage(Client *c, int destroyed)
- 	Monitor *m = c->mon;
- 	XWindowChanges wc;
+@@ -1703,7 +1703,7 @@ textnw(const char *text, unsigned int len) {
  
-+	if (c->swallowing) {
-+		unswallow(c);
-+		return;
-+	}
-+
-+	Client *s = swallowingclient(c->win);
-+	if (s) {
-+		free(s->swallowing);
-+		s->swallowing = NULL;
-+		arrange(m);
-+        focus(NULL);
-+		return;
-+	}
-+
- 	/* The server grab construct avoids race conditions. */
- 	detach(c);
- 	detachstack(c);
-@@ -2293,6 +2471,8 @@ main(int argc, char *argv[])
- 		fputs("warning: no locale support\n", stderr);
- 	if (!(dpy = XOpenDisplay(NULL)))
- 		die("dwm: cannot open display\n");
-+	if (!(xcon = XGetXCBConnection(dpy)))
-+		die("dwm: cannot get xcb connection\n");
- 	checkotherwm();
- 	setup();
- 	scan();
+ void
+ tile(Monitor *m) {
+-	unsigned int i, n, h, mw, my, ty;
++	unsigned int i, n, h, r, g = 0, mw, my, ty;
+ 	Client *c;
+ 
+ 	for(n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
+@@ -1711,19 +1711,21 @@ tile(Monitor *m) {
+ 		return;
+ 
+ 	if(n > m->nmaster)
+-		mw = m->nmaster ? m->ww * m->mfact : 0;
++		mw = m->nmaster ? (m->ww - (g = gappx)) * m->mfact : 0;
+ 	else
+ 		mw = m->ww;
+ 	for(i = my = ty = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++)
+ 		if(i < m->nmaster) {
+-			h = (m->wh - my) / (MIN(n, m->nmaster) - i);
++			r = MIN(n, m->nmaster) - i;
++			h = (m->wh - my - gappx * (r - 1)) / r;
+ 			resize(c, m->wx, m->wy + my, mw - (2*c->bw), h - (2*c->bw), False);
+-			my += HEIGHT(c);
++			my += HEIGHT(c) + gappx;
+ 		}
+ 		else {
+-			h = (m->wh - ty) / (n - i);
+-			resize(c, m->wx + mw, m->wy + ty, m->ww - mw - (2*c->bw), h - (2*c->bw), False);
+-			ty += HEIGHT(c);
++			r = n - i;
++			h = (m->wh - ty - gappx * (r - 1)) / r;
++			resize(c, m->wx + mw + g, m->wy + ty, m->ww - mw - g - (2*c->bw), h - (2*c->bw), False);
++			ty += HEIGHT(c) + gappx;
+ 		}
+ }
+ 
