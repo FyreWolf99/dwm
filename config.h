@@ -2,7 +2,7 @@
 
 /* appearance */
 static const unsigned int borderpx  = 1;        /* border pixel of windows */
-static const unsigned int gappx     = 1;        /* gap pixel between windows */
+static const unsigned int gappx     = 15;        /* gap pixel between windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
@@ -30,7 +30,6 @@ static const Rule rules[] = {
 	 */
 	/* class      instance    title       tags mask     isfloating   isterminal noswallow monitor */
 	{ "Gimp",     NULL,       NULL,       0,            1,           0,         0,        -1 },
-	{ "Firefox",  NULL,       NULL,       1 << 8,       0,           0,         0,        -1 },
 	{ "st",       NULL,       NULL,       0,            0,           1,         1,        -1 },
 	{ "xev",      NULL,	  NULL,	      0,	    0,		 0,	    1,	      -1 },
 };
@@ -64,19 +63,19 @@ static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() 
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-i", NULL };
 static const char *termcmd[]  = { "st", NULL };
 static const char *browser[] = { "brave", NULL };
+static const char *privBrowser[] = { "firefox", NULL };
 static const char *reaper[]  = { "reaper", NULL };
 static const char *discord[]  = { "discord-canary", NULL };
-static const char *emacs[]  = { "emacsclient", "-c", "-a", "emacs", NULL };
 
 #include "movestack.c"
 static Key keys[] = {
 	/* modifier                     key        function        argument */
 	{ MODKEY|ShiftMask,             XK_Return, spawn,          {.v = dmenucmd } },
-	{ MODKEY,			XK_w,	   spawn,	   {.v = browser } },
+	{ MODKEY,			XK_w,	   spawn,	   {.v = privBrowser } },
+	{ MODKEY|ShiftMask,		XK_w,	   spawn,	   {.v = browser } },
 	{ MODKEY,	                XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY,			XK_r,	   spawn,	   {.v = reaper } },
 	{ MODKEY|ShiftMask,		XK_d,	   spawn,	   {.v = discord } },
-	{ MODKEY,			XK_e,	   spawn,	   {.v = emacs } },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
@@ -127,4 +126,3 @@ static Button buttons[] = {
 	{ ClkTagBar,            MODKEY,         Button1,        tag,            {0} },
 	{ ClkTagBar,            MODKEY,         Button3,        toggletag,      {0} },
 };
-
